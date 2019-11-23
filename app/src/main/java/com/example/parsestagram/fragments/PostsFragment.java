@@ -11,6 +11,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.example.parsestagram.Post;
 import com.example.parsestagram.PostsAdapter;
@@ -29,6 +30,7 @@ public class PostsFragment extends Fragment {
     private RecyclerView rvPosts;
     protected PostsAdapter adapter;
     protected List<Post> mPosts;
+    SwipeRefreshLayout swipeContainer;
 
     @Nullable
     @Override
@@ -39,6 +41,21 @@ public class PostsFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         rvPosts = view.findViewById(R.id.rvPosts);
+        swipeContainer = view.findViewById(R.id.swipeContainer);
+
+        // Configure the refreshing colors
+        swipeContainer.setColorSchemeResources(android.R.color.holo_blue_bright,
+                android.R.color.holo_green_light,
+                android.R.color.holo_orange_light,
+                android.R.color.holo_red_light);
+
+        swipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                Log.i(TAG,"Fetching new data");
+                queryPosts();
+            }
+        });
 
         //create the adapter
         mPosts = new ArrayList<>();
@@ -65,8 +82,13 @@ public class PostsFragment extends Fragment {
                     e.printStackTrace();
                     return;
                 }
-                mPosts.addAll(posts);
-                adapter.notifyDataSetChanged();
+
+//                mPosts.addAll(posts);
+//                adapter.notifyDataSetChanged();
+                adapter.clear();
+                adapter.addAll(posts);
+                // Now we call setRefreshing(false) to signal refresh has finished
+                swipeContainer.setRefreshing(false);
 
                 for (int i = 0; i < posts.size(); i++) {
                     Post post = posts.get(i);
